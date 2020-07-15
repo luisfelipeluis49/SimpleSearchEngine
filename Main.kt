@@ -1,5 +1,6 @@
 package search
 
+import org.graalvm.compiler.core.common.type.ArithmeticOpTable
 import java.awt.image.BufferStrategy
 import java.io.File
 import java.util.*
@@ -36,7 +37,7 @@ class SearchEngine {
         println("2. Print all people")
         println("0. Exit")
         when (scanner.next()) {
-            "1" -> find(strategySearch())
+            "1" -> strategySearch()
             "2" -> people.forEach(::println)
             "0" -> { println("Bye!"); return false }
             else -> println("Incorrect option! Try again.")
@@ -44,23 +45,60 @@ class SearchEngine {
         return true
     }
 
-    private fun strategySearch(): String {
+    private fun strategySearch() {
         println("Select a matching strategy: ALL, ANY, NONE")
-        return scanner.nextLine()
+        val s = scanner.nextLine()
+
+        when (s.toLowerCase()) {
+            "all" -> {}
+            "any" -> findAny()
+            "none" -> findNone()
+        }
     }
 
-    private fun find(strategy: String) {
+    // TODO: Fix findNone(), to only add a new people to founded when all ss are different from search.
+    private fun findNone() {
         println("Enter a name or email to search all suitable people.")
-        val search = scanner.next().toLowerCase()
+        val search = scanner.nextLine().toLowerCase().split(" ")
         val founded = mutableListOf<Int>()
         repeat(people1.size) {
             val line = people1[it]
-            line?.forEach {
-                w ->
-                if (w.toLowerCase() == search) {
-                    founded.add(founded.size, it)
+            search.forEach {
+                ss ->
+                line?.forEach {
+                    w ->
+                    if (w.toLowerCase() != ss && founded.contains(it).not()) {
+                        founded.add(founded.size, it)
+                    }
                 }
             }
+
+        }
+
+        if (founded.isNotEmpty()) {
+            println("Found people:")
+            founded.forEach { println(people[it - 1])}
+        } else {
+            println("No matching people found.")
+        }
+    }
+
+    private fun findAny() {
+        println("Enter a name or email to search all suitable people.")
+        val search = scanner.nextLine().toLowerCase().split(" ")
+        val founded = mutableListOf<Int>()
+        repeat(people1.size) {
+            val line = people1[it]
+            search.forEach {
+                ss ->
+                line?.forEach {
+                    w ->
+                    if (w.toLowerCase() == ss && founded.contains(it).not()) {
+                        founded.add(founded.size, it)
+                    }
+                }
+            }
+
         }
 
         if (founded.isNotEmpty()) {
